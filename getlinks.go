@@ -35,9 +35,9 @@ func setup() {
   if len(args) == 0 || len(args) % 2 != 0 {
     die("You have to specify at least one url regexp pair!", 5)
   } else {
-    n := len(args) / 2
-    tasks = make(map[string]*regexp.Regexp, n)
-    for i := 0; i < n; i += 1 {
+    n := len(args)
+    tasks = make(map[string]*regexp.Regexp, n / 2)
+    for i := 0; i < n; i += 2 {
       arg := args[i+1]
       regexp, err := regexp.Compile(arg)
       if err != nil {
