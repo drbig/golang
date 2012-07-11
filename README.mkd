@@ -6,4 +6,5 @@ If you have any feedback drop me a line at p.staszewski@gmail.com
 Working stuff
 -------------
 * getlinks.go
-  Extract links (or actually anything) based on regexp from websites. One major feature is support to go through 'all pages' by following a 'Next' or alike link (again, regexp matching). You can have more than one extract regexp per URL and they work in parallel. I guess you can do similar stuff with httrack or maybe even curl/wget, but I personally prefer to be able to extract all links so I can run wget on the right machine in the right time. The code is not commented, but then it should be reasonably easy to understand anyway.
+
+Extract links (or actually anything) based on regexps from websites. One major feature is support to go through 'all pages' by following a 'Next' or alike link (again, regexp matching). You can have more than one extracting regexp per URL, and they are processed in parallel. I guess you can do similar stuff with httrack or maybe even curl/wget, but I personally prefer to be able to extract all links so I can run wget on the right machine in the right time. The code is not commented, but then it should be reasonably easy to understand anyway.
