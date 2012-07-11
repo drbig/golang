@@ -5,8 +5,12 @@
 package main
 
 import (
+  "bytes"
+  "fmt"
   "flag"
+  "io/ioutil"
   "log"
+  "net/http"
   "os"
   "regexp"
   "strings"
@@ -39,11 +43,11 @@ func setup() {
     tasks = make(map[string]*regexp.Regexp, n / 2)
     for i := 0; i < n; i += 2 {
       arg := args[i+1]
-      regexp, err := regexp.Compile(arg)
+      rxp, err := regexp.Compile(arg)
       if err != nil {
         die("Error parsing regexp '" + arg + "'!", 2)
       } else {
-        tasks[args[i]] = regexp
+        tasks[args[i]] = rxp
       }
     }
   }
@@ -55,6 +59,19 @@ func say(what string) {
   }
 }
 
+func fetch(url string) (string, error) {
+  res, err := http.Get(url)
+  if err != nil {
+    return "", err
+  }
+  defer res.Body.Close()
+  body, err := ioutil.ReadAll(res.Body)
+  if err != nil {
+    return "", err
+  }
+  return bytes.NewBuffer(body).String(), nil
+}
+
 func main() {
   setup()
   say("Hello there")
@@ -62,7 +79,17 @@ func main() {
     say("Following type: " + follow_type)
     say("Following regexp: " + follow_arg)
   }
-  for url, regexp := range tasks {
-    say("Processing link '" + url + "' with regexp '" + regexp.String() + "'")
+  for url, rxp := range tasks {
+    say("Processing link '" + url + "' with regexp '" + rxp.String() + "'")
+    body, err := fetch(url)
+    if err != nil {
+      log.Fatalln("Error fetching url '" + url + "'!")
+    }
+    //fmt.Println(body)
+    matches := rxp.FindAllStringSubmatch(body, -1)
+    fmt.Printf("Found %d\n", len(matches))
+    for i := 0; i < len(matches); i++ {
+      fmt.Println(matches[i][1])
+    }
   }
 }
