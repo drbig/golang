@@ -68,9 +68,10 @@ func setup() {
   }
 
   var err error
-  uri, err = url.Parse(args[0])
+  uri_str := args[0]
+  uri, err = url.Parse(uri_str)
   if err != nil {
-    die("Error parsing primary url '" + args[0] + "'!", 5)
+    die("Error parsing primary url '" + uri_str + "'!", 5)
   }
 
   rxps = make([]*regexp.Regexp, n - 1)
@@ -85,8 +86,8 @@ func say(what string) {
   }
 }
 
-func fetch(url string) (string, error) {
-  res, err := http.Get(url)
+func fetch(uri *url.URL) (string, error) {
+  res, err := http.Get(uri.String())
   if err != nil {
     return "", err
   }
@@ -98,12 +99,21 @@ func fetch(url string) (string, error) {
   return bytes.NewBuffer(body).String(), nil
 }
 
-func process_page(body string, rxp *regexp.Regexp, ctrl chan bool) {
-    say("Processing regexp '" + rxp.String() + "'")
+func process_page(base *url.URL, page int, body string, rxp *regexp.Regexp, ctrl chan bool) {
+    say(fmt.Sprintf("Page %d - processing regexp '%s'", page, rxp.String()))
     matches := rxp.FindAllStringSubmatch(body, -1)
-    say(fmt.Sprintf("Found %d matches", len(matches)))
+    say(fmt.Sprintf("Page %d - found %d matches", page, len(matches)))
     for i := 0; i < len(matches); i++ {
-      fmt.Println(matches[i][1])
+      uri_str := matches[i][1]
+      this_uri, err := url.Parse(uri_str)
+      if err != nil {
+        log.Fatalln("Error parsing url '" + uri_str + "'!")
+        continue
+      }
+      if !this_uri.IsAbs() {
+        this_uri = base.ResolveReference(this_uri)
+      }
+      fmt.Println(this_uri.String())
     }
     ctrl <- true
 }
@@ -111,7 +121,7 @@ func process_page(body string, rxp *regexp.Regexp, ctrl chan bool) {
 func main() {
   setup()
 
-  body, err := fetch(uri.String())
+  body, err := fetch(uri)
   if err != nil {
     die("Error loading the primary url!", 5)
   }
@@ -122,7 +132,7 @@ func main() {
 
   for {
     for _, rxp := range rxps {
-      go process_page(body, rxp, ctrl)
+      go process_page(uri, pages, body, rxp, ctrl)
       workers += 1
     }
 
@@ -143,7 +153,7 @@ func main() {
         } else {
           uri = next_uri
         }
-        body, err = fetch(uri.String())
+        body, err = fetch(uri)
         if err != nil {
           log.Fatalln("Error fetching url '" + uri.String() + "'!")
           break
