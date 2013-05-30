@@ -26,7 +26,7 @@ const (
 	ARPREGEX  = ".*? \\((.*?)\\) "
 	LOGSIZE   = 16
 	HTMLSTART = `<html><head><title>arpapp</title>
-<style>body{background:black;color:white}span.online{color:green}span.offline{color:red}</style>
+<style>body{background:black;color:#d0d0d0}span.online{color:green}span.offline{color:red}</style>
 </head><body><pre><b>arpapp</b>
 
 `
@@ -129,7 +129,7 @@ func render(out http.ResponseWriter, req *http.Request) {
 		} else {
 			fmt.Fprintf(out, "offline")
 		}
-		fmt.Fprintf(out, "'>%-15s</span> since %s (%s)\n", ip, entry.stamp.Format("2006-01-02 15:04:10 GMT"), duration.String())
+		fmt.Fprintf(out, "'>%-15s</span> since %s (%s)\n", ip, entry.stamp.Format("2006-01-02 15:04:05 MST"), duration.String())
 	}
 	fmt.Fprintf(out, "\ninterval: %s", interval)
 	fmt.Fprintf(out, HTMLEND)
