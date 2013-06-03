@@ -12,3 +12,7 @@ Extract links (or actually anything) based on regexps from websites. One major f
 * arpapp.go
 
 A 'webapp' that discovers ips via arp cache and then ping-checks them - to bring you a succinct report of what is online and what is offline in your neighbourhood. It considers itself only with the last state change (keeping both the 'since' and 'time elapsed'). It does not clean old entries (i.e. not suitable for public routers). Tested on FreeBSD and Linux, works like a charm.
+
+* dhproxy.go
+
+Thanks to [goproxy](https://github.com/elazarl/goproxy) this is basically a 'one-liner' - it's a simple HTTP proxy that will dump the URI of each request that goes through it to stdout.
