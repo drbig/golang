@@ -93,7 +93,8 @@ func scan() {
 		} else {
 			continue
 		}
-
+	}
+	for ip, _ := range seen {
 		if _, present := arplog[ip]; present {
 			if !arplog[ip].online {
 				arplog[ip] = ArpEntry{online: true, stamp: time.Now()}
@@ -102,9 +103,11 @@ func scan() {
 			arplog[ip] = ArpEntry{online: true, stamp: time.Now()}
 		}
 	}
-	for ip, _ := range arplog {
+	for ip, entry := range arplog {
 		if _, present := seen[ip]; !present {
-			arplog[ip] = ArpEntry{online: false, stamp: time.Now()}
+			if entry.online {
+				arplog[ip] = ArpEntry{online: false, stamp: time.Now()}
+			}
 		}
 	}
 }
