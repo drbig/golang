@@ -16,3 +16,7 @@ A 'webapp' that discovers ips via arp cache and then ping-checks them - to bring
 * dhproxy.go
 
 Thanks to [goproxy](https://github.com/elazarl/goproxy) this is basically a 'one-liner' - it's a simple HTTP proxy that will dump the URI of each request that goes through it to stdout.
+
+* wol.go
+
+Simple implementation of [Wake-On-Lan](http://en.wikipedia.org/wiki/Wake-on-LAN). This is a part of my another 'project' where I implemented this functionality in a number of languages (currently C, Go, Ocaml, Ruby and Scheme). Before running you should edit the broadcast IP and the static MAC table. Each argument will be first looked up in the table, if that fails it will be treated as an MAC address. In both cases if the parsing goes ok a magic packet will be sent three times (without delay). There is only rudimentary error checking. Tested only on Linux (where it works).
