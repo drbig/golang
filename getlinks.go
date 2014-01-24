@@ -99,9 +99,9 @@ func fetch(uri *url.URL) (string, error) {
 }
 
 func process_page(base *url.URL, page int, body string, rxp *regexp.Regexp, ctrl chan bool) {
-	say(fmt.Sprintf("Page %d - processing regexp '%s'", page, rxp.String()))
+	say(fmt.Sprintf("Page %d (%s) - processing regexp '%s'", page, base.String(), rxp.String()))
 	matches := rxp.FindAllStringSubmatch(body, -1)
-	say(fmt.Sprintf("Page %d - found %d matches", page, len(matches)))
+	say(fmt.Sprintf("Page %d (%s) - found %d matches", page, base.String(), len(matches)))
 	for i := 0; i < len(matches); i++ {
 		uri_str := matches[i][1]
 		this_uri, err := url.Parse(uri_str)
