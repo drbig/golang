@@ -37,8 +37,10 @@ var (
 	host     string
 	port     int
 	interval time.Duration
+	decay    int
 	arplog   map[string]ArpEntry
 	arpregex *regexp.Regexp
+	decayrex *regexp.Regexp
 )
 
 func die(msg string, code int) {
@@ -49,6 +51,7 @@ func die(msg string, code int) {
 func setup() {
 	var err error
 	var intervalstr string
+	var decayrexstr string
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [options] PORT\n", os.Args[0])
@@ -57,6 +60,8 @@ func setup() {
 
 	flag.StringVar(&host, "h", "127.0.0.1", "HTTP server bind HOST")
 	flag.StringVar(&intervalstr, "i", "10m", "Scan INTERVAL")
+	flag.IntVar(&decay, "d", 72, "Forget after DECAY hours")
+	flag.StringVar(&decayrexstr, "r", "", "Decay only IPs matching REGEXP")
 	flag.Parse()
 
 	if len(flag.Args()) < 1 {
@@ -71,6 +76,15 @@ func setup() {
 	port, err = strconv.Atoi(flag.Args()[0])
 	if err != nil || port <= 0 {
 		die("Port has to be a positive integer!", 2)
+	}
+
+	if (len(decayrexstr) > 0) && (decay > 0) {
+		decayrex, err = regexp.Compile(decayrexstr)
+		if err != nil {
+			die("Failed to compile regexp '"+decayrexstr+"'!", 2)
+		}
+	} else {
+		decayrex = nil
 	}
 
 	arpregex = regexp.MustCompile(ARPREGEX)
@@ -107,6 +121,14 @@ func scan() {
 		if _, present := seen[ip]; !present {
 			if entry.online {
 				arplog[ip] = ArpEntry{online: false, stamp: time.Now()}
+			}
+		}
+		if (decayrex != nil) && !entry.online {
+			if decayrex.MatchString(ip) {
+				duration := time.Since(entry.stamp)
+				if duration.Hours() >= float64(decay) {
+					delete(arplog, ip)
+				}
 			}
 		}
 	}
