@@ -20,3 +20,7 @@ Thanks to [goproxy](https://github.com/elazarl/goproxy) this is basically a 'one
 * wol.go
 
 Simple implementation of [Wake-On-Lan](http://en.wikipedia.org/wiki/Wake-on-LAN). This is a part of my another 'project' where I implemented this functionality in a number of languages (currently C, Go, Ocaml, Ruby and Scheme). Before running you should edit the broadcast IP and the static MAC table. Each argument will be first looked up in the table, if that fails it will be treated as an MAC address. In both cases if the parsing goes ok a magic packet will be sent three times (without delay). There is only rudimentary error checking. Tested only on Linux (where it works).
+
+* pomf.go
+
+Rather simple uploader for [pomf.se](http://pomf.se). Simple example of using `mime/multipart` post a file and `encoding/json` to parse the results. It will try to upload whatever comes on `stdin`.
