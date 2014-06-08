@@ -7,20 +7,45 @@ Working stuff
 -------------
 * getlinks.go
 
-Extract links (or actually anything) based on regexps from websites. One major feature is support to go through 'all pages' by following a 'Next' or alike link (again, regexp matching). You can have more than one extracting regexp per URL, and they are processed in parallel. I guess you can do similar stuff with httrack or maybe even curl/wget, but I personally prefer to be able to extract all links so I can run wget on the right machine in the right time. The code is not commented, but then it should be reasonably easy to understand anyway.
+Extract links (or actually anything) based on regexps from websites. One major 
+feature is support to go through 'all pages' by following a 'Next' or alike 
+link (again, regexp matching). You can have more than one extracting regexp per 
+URL, and they are processed in parallel. I guess you can do similar stuff with 
+httrack or maybe even curl/wget, but I personally prefer to be able to extract 
+all links so I can run wget on the right machine in the right time. The code is 
+not commented, but then it should be reasonably easy to understand anyway.
 
 * arpapp.go
 
-A 'webapp' that discovers ips via arp cache and then ping-checks them - to bring you a succinct report of what is online and what is offline in your neighbourhood. It considers itself only with the last state change (keeping both the 'since' and 'time elapsed'). It does not clean old entries (i.e. not suitable for public routers). Tested on FreeBSD and Linux, works like a charm.
+A 'webapp' that discovers ips via arp cache and then ping-checks them - to 
+bring you a succinct report of what is online and what is offline in your 
+neighbourhood. It considers itself only with the last state change (keeping 
+both the 'since' and 'time elapsed'). It does not clean old entries (i.e. not 
+suitable for public routers). Tested on FreeBSD and Linux, works like a charm.
 
 * dhproxy.go
 
-Thanks to [goproxy](https://github.com/elazarl/goproxy) this is basically a 'one-liner' - it's a simple HTTP proxy that will dump the URI of each request that goes through it to stdout.
+Thanks to [goproxy](https://github.com/elazarl/goproxy) this is basically a 
+'one-liner' - it's a simple HTTP proxy that will dump the URI of each request 
+that goes through it to stdout.
 
 * wol.go
 
-Simple implementation of [Wake-On-Lan](http://en.wikipedia.org/wiki/Wake-on-LAN). This is a part of my another 'project' where I implemented this functionality in a number of languages (currently C, Go, Ocaml, Ruby and Scheme). Before running you should edit the broadcast IP and the static MAC table. Each argument will be first looked up in the table, if that fails it will be treated as an MAC address. In both cases if the parsing goes ok a magic packet will be sent three times (without delay). There is only rudimentary error checking. Tested only on Linux (where it works).
+Simple implementation of 
+[Wake-On-Lan](http://en.wikipedia.org/wiki/Wake-on-LAN). This is a part of my 
+another 'project' where I implemented this functionality in a number of 
+languages (currently C, Go, Ocaml, Ruby and Scheme). Before running you should 
+edit the broadcast IP and the static MAC table. Each argument will be first 
+looked up in the table, if that fails it will be treated as an MAC address. In 
+both cases if the parsing goes ok a magic packet will be sent three times 
+(without delay). There is only rudimentary error checking. Tested only on Linux 
+(where it works).
 
 * pomf.go
 
-Rather simple uploader for [pomf.se](http://pomf.se). Simple example of using `mime/multipart` post a file and `encoding/json` to parse the results. It will try to upload whatever comes on `stdin`.
+Rather simple uploader for [pomf.se](http://pomf.se). Simple example of using 
+`mime/multipart` post a file and `encoding/json` to parse the results. Without 
+arguments it will try to upload whatever comes on `stdin`. Otherwise you can 
+specify filenames as arguments, and it will try to upload each file. Exits 
+successfully only if all uploads were successful and dies very quickly on 
+almost any error.

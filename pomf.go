@@ -12,12 +12,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-)
-
-const (
-	FIELD    = "files[]"
-	UPLOAD   = "http://pomf.se/upload.php"
-	DOWNLOAD = "http://a.pomf.se/"
+	"path/filepath"
 )
 
 type PomfResponse struct {
@@ -26,18 +21,34 @@ type PomfResponse struct {
 	Files   []map[string]interface{}
 }
 
-func main() {
-	buffer := &bytes.Buffer{}
+const (
+	FIELD    = "files[]"
+	UPLOAD   = "http://pomf.se/upload.php"
+	DOWNLOAD = "http://a.pomf.se/"
+	SIZE     = 52428800
+)
+
+var (
+	buffer *bytes.Buffer
+	ack    PomfResponse
+	client *http.Client
+)
+
+func upload(src io.Reader, filename string) bool {
 	writer := multipart.NewWriter(buffer)
 
-	part, err := writer.CreateFormFile(FIELD, "stdin")
+	part, err := writer.CreateFormFile(FIELD, filename)
 	if err != nil {
 		panic(err)
 	}
 
-	_, err = io.Copy(part, os.Stdin)
+	size, err := io.Copy(part, src)
 	if err != nil {
 		panic(err)
+	}
+	if size > SIZE {
+		fmt.Println("ERROR: Input too large")
+		return false
 	}
 
 	err = writer.Close()
@@ -52,7 +63,6 @@ func main() {
 
 	req.Header.Add("Content-Type", writer.FormDataContentType())
 
-	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
 		panic(err)
@@ -71,11 +81,60 @@ func main() {
 		panic(err)
 	}
 
-	if !ack.Success {
-		fmt.Fprintf(os.Stderr, "ERROR: %s\n", ack.Error)
-		os.Exit(1)
-	} else {
+	if ack.Success {
 		fmt.Printf("%s%s\n", DOWNLOAD, ack.Files[0]["url"])
-		os.Exit(0)
+		return true
+	} else {
+		fmt.Printf("ERROR: %s\n", ack.Error)
+		return false
+	}
+}
+
+func main() {
+	buffer = &bytes.Buffer{}
+	client = &http.Client{}
+
+	if len(os.Args) == 1 {
+		if upload(os.Stdin, "stdin") {
+			os.Exit(0)
+		} else {
+			os.Exit(1)
+		}
+	} else {
+		failed := 0
+
+		for _, arg := range os.Args[1:] {
+			path, err := filepath.Abs(arg)
+			if err != nil {
+				panic(err)
+			}
+
+			filename := filepath.Base(path)
+			fmt.Printf("%s: ", filename)
+
+			handle, err := os.Open(path)
+			if err != nil {
+				panic(err)
+			}
+			info, err := handle.Stat()
+			if err != nil {
+				panic(err)
+			}
+			if info.Size() > SIZE {
+				fmt.Println("ERROR: File too large")
+				failed++
+				continue
+			}
+			if !upload(handle, filename) {
+				failed++
+			}
+			handle.Close()
+		}
+
+		if failed > 0 {
+			os.Exit(1)
+		} else {
+			os.Exit(0)
+		}
 	}
 }
