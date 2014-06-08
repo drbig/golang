@@ -35,6 +35,7 @@ var (
 )
 
 func upload(src io.Reader, filename string) bool {
+	buffer.Reset()
 	writer := multipart.NewWriter(buffer)
 
 	part, err := writer.CreateFormFile(FIELD, filename)
