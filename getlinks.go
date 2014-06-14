@@ -1,6 +1,6 @@
-//
 // Getlinks
-//
+// dRbiG
+// See LICENSE.txt
 
 package main
 

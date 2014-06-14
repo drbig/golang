@@ -1,6 +1,6 @@
-//
 // Arpapp
-//
+// dRbiG
+// See LICENSE.txt
 
 package main
 

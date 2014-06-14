@@ -1,6 +1,6 @@
-//
 // Dumping HTTP Proxy
-//
+// dRbiG
+// See LICENSE.txt
 
 package main
 

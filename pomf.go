@@ -1,6 +1,6 @@
 // Simplest pomf.se uploader
-// dRbiG 2014
-//
+// dRbiG, 2014
+// See LICENSE.txt
 
 package main
 

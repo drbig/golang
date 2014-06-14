@@ -49,3 +49,10 @@ arguments it will try to upload whatever comes on `stdin`. Otherwise you can
 specify filenames as arguments, and it will try to upload each file. Exits 
 successfully only if all uploads were successful and dies very quickly on 
 almost any error.
+
+License
+-------
+
+Copyright (c) 2012 - 2014 Piotr S. Staszewski
+
+Usual [2-clause BSD license](http://opensource.org/licenses/BSD-2-Clause) for everything. See LICENSE.txt for details.
