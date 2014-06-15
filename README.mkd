@@ -50,9 +50,37 @@ specify filenames as arguments, and it will try to upload each file. Exits
 successfully only if all uploads were successful and dies very quickly on 
 almost any error.
 
+* grabber.go
+
+Purely declarative web scrapper with parallel downloading. Intended to automate 
+the common pattern found in websites: archive page pagination - post links - 
+resource links. You should open `unixporn.json` example to see the structure of 
+a target definition. Non-URL data extraction example is in `golang.json`.
+
+There are two modes: `follow` - use for pagination, and `every` - use for link 
+extraction. Then there are three actions that can be taken: `print` - will 
+print the link to stdout, `log` - will log the link (either `stdout` or 
+`stdin`, depending on the state of the `-log` flag), `download` - will send 
+the link to the built-in parallel downloader (which will download only if the 
+file doesn't already exist), and finally `raw` - this mode will print to stdout 
+whatever was matched, without trying to resolve it into a full URL (this way 
+you can use this software to extract pretty much anything).
+
+The `do` actions can be chained in arbitrary manner and form a *command* path 
+that will be executed linearly. You can define multiple targets in a single 
+file. It will work with SSL connection however it will *not do* any 
+verification.
+
+This is by far the most involved piece of software that I have written in 
+Golang, and although it's far from beauty, I had a lot of fun writing it.
+
+Depends on (gokogiri)[https://github.com/moovweb/gokogiri]. Tested under Linux 
+and FreeBSD.
+
 License
 -------
 
 Copyright (c) 2012 - 2014 Piotr S. Staszewski
 
-Usual [2-clause BSD license](http://opensource.org/licenses/BSD-2-Clause) for everything. See LICENSE.txt for details.
+Usual [2-clause BSD license](http://opensource.org/licenses/BSD-2-Clause) for 
+everything. See LICENSE.txt for details.

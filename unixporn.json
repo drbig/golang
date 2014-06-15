@@ -1,0 +1,16 @@
+[{
+  "name": "reddit's unixporn",
+  "url": "http://www.reddit.com/r/unixporn/",
+  "bail": 50,
+  "path": "./unixporn",
+  "do": {
+    "xpath": "//a[text()='next ›']/@href",
+    "mode": "follow",
+    "action": "log",
+    "do": {
+      "xpath": "//a[@class='thumbnail may-blank ' and (contains(@href, 'jpg') or contains(@href, 'png') or contains(@href, 'gif'))]/@href",
+      "mode": "every",
+      "action": "download"
+    }
+  }
+}]

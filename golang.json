@@ -1,0 +1,16 @@
+[{
+  "name": "golang sigs",
+  "url": "http://golang.org/pkg/",
+  "bail": 0,
+  "path": "./",
+  "do": {
+    "xpath": "//td[@class='name']/a/@href",
+    "mode": "every",
+    "action": "log",
+    "do": {
+      "xpath": "//div[@id='manual-nav']/dl/dd/a/text()",
+      "mode": "every",
+      "action": "raw"
+    }
+  }
+}]
