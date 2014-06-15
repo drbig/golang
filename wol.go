@@ -1,8 +1,6 @@
-//
-// WakeOnLan in Go.
-// 2014-01-07
-// dRbiG
-//
+// WakeOnLan in Go
+// dRbiG, 2014-01-07
+// See LICENSE.txt
 
 package main
 
