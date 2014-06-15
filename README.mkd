@@ -74,7 +74,7 @@ verification.
 This is by far the most involved piece of software that I have written in 
 Golang, and although it's far from beauty, I had a lot of fun writing it.
 
-Depends on (gokogiri)[https://github.com/moovweb/gokogiri]. Tested under Linux 
+Depends on [gokogiri](https://github.com/moovweb/gokogiri). Tested under Linux 
 and FreeBSD.
 
 License
