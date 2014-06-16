@@ -17,11 +17,6 @@ import (
 	"sync"
 )
 
-type Kurier interface {
-	IsMatch(string) bool
-	Check(string) (string, error)
-}
-
 type Service struct {
 	Name      string
 	Matcher   string
