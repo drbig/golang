@@ -161,10 +161,10 @@ func DoAction(base *url.URL, target string, act *Action) (res *url.URL, err erro
 
 func Process(base *url.URL, act *Action) (err error) {
 	doc, err := DownloadPage(base.String())
-	defer doc.Free()
 	if err != nil {
 		return err
 	}
+	defer doc.Free()
 
 	res, err := doc.Search(act.XPath)
 	if err != nil {
