@@ -5,7 +5,8 @@ If you have any feedback drop me a line at p.staszewski@gmail.com
 
 Working stuff
 -------------
-* getlinks.go
+
+### getlinks.go
 
 Extract links (or actually anything) based on regexps from websites. One major 
 feature is support to go through 'all pages' by following a 'Next' or alike 
@@ -15,7 +16,7 @@ httrack or maybe even curl/wget, but I personally prefer to be able to extract
 all links so I can run wget on the right machine in the right time. The code is 
 not commented, but then it should be reasonably easy to understand anyway.
 
-* arpapp.go
+### arpapp.go
 
 A 'webapp' that discovers ips via arp cache and then ping-checks them - to 
 bring you a succinct report of what is online and what is offline in your 
@@ -23,13 +24,13 @@ neighbourhood. It considers itself only with the last state change (keeping
 both the 'since' and 'time elapsed'). It does not clean old entries (i.e. not 
 suitable for public routers). Tested on FreeBSD and Linux, works like a charm.
 
-* dhproxy.go
+### dhproxy.go
 
 Thanks to [goproxy](https://github.com/elazarl/goproxy) this is basically a 
 'one-liner' - it's a simple HTTP proxy that will dump the URI of each request 
 that goes through it to stdout.
 
-* wol.go
+### wol.go
 
 Simple implementation of 
 [Wake-On-Lan](http://en.wikipedia.org/wiki/Wake-on-LAN). This is a part of my 
@@ -41,7 +42,7 @@ both cases if the parsing goes ok a magic packet will be sent three times
 (without delay). There is only rudimentary error checking. Tested only on Linux 
 (where it works).
 
-* pomf.go
+### pomf.go
 
 Rather simple uploader for [pomf.se](http://pomf.se). Simple example of using 
 `mime/multipart` post a file and `encoding/json` to parse the results. Without 
@@ -50,7 +51,7 @@ specify filenames as arguments, and it will try to upload each file. Exits
 successfully only if all uploads were successful and dies very quickly on 
 almost any error.
 
-* grabber.go
+### grabber.go
 
 Purely declarative web scrapper with parallel downloading. Intended to automate 
 the common pattern found in websites: archive page pagination - post links - 
@@ -76,6 +77,16 @@ Golang, and although it's far from beauty, I had a lot of fun writing it.
 
 Depends on [gokogiri](https://github.com/moovweb/gokogiri). Tested under Linux 
 and FreeBSD.
+
+### kurier.go
+
+Check the status of your deliveries from the command-line (and *fast*). This 
+one uses either XPath or plain old Regexp extractor, so you can deal easily 
+with both HTML and JSON. Currently it's setup for the 5 most popular delivery
+services in Poland (though UPS link looks like a global one, just change the
+language bit). Provide your tracking numbers as arguments. Depends on 
+[gokogiri](https://github.com/moovweb/gokogiri) and 
+[sanitize](https://github.com/kennygrant/sanitize).
 
 License
 -------
