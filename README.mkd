@@ -88,6 +88,22 @@ language bit). Provide your tracking numbers as arguments. Depends on
 [gokogiri](https://github.com/moovweb/gokogiri) and 
 [sanitize](https://github.com/kennygrant/sanitize).
 
+### captcher.go
+
+Prototype of a stand-alone image-based CAPTCHA generator and server. The two 
+main goals are performance and simplicity, with intent to experiment with 
+different forms of CAPTCHAs (as the mutilated-text images suck). The API 
+consists of `/gen` which returns either a `500` error or a simple JSON 
+response (`t`oken as `int` and `a`nswer as `string`), and `/image?id=TOKEN`. 
+Right now it will generate random string images without any 'effects'. 
+It has some command-line options such as how long should the images remain 
+downloadable. Being a prototype it lacks proper performance testing and some 
+additional security (like protection of `/gen` with a passkey or IP policy).
+The only dependency is [freetype-go](https://code.google.com/p/freetype-go/). 
+There are no runtime dependencies. The `sample.ttf` font comes from 
+[Ruby/SDL](https://github.com/ohai/rubysdl) repository (if I remember 
+correctly) and I claim no copyright for it.
+
 License
 -------
 
