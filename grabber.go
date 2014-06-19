@@ -280,6 +280,7 @@ func Downloader() {
 			n, took, err := DownloadFile(target.String(), fullpath)
 			if err != nil {
 				log.Printf("ERROR Downloader: %s\n", err)
+			} else {
 				stats.Update(n, took)
 			}
 		}
