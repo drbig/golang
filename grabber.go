@@ -39,11 +39,45 @@ type Target struct {
 	Do   *Action
 }
 
+type Stats struct {
+	Number int
+	Size   int64
+	Took   time.Duration
+	Mtx    sync.Mutex
+}
+
+func (s *Stats) Update(n int64, took time.Duration) {
+	s.Mtx.Lock()
+	s.Number++
+	s.Size += n
+	s.Took += took
+	s.Mtx.Unlock()
+}
+
+func (s *Stats) IsEmpty() (b bool) {
+	s.Mtx.Lock()
+	if s.Number < 1 {
+		b = true
+	}
+	s.Mtx.Unlock()
+	return
+}
+
+func (s *Stats) String() string {
+	s.Mtx.Lock()
+	num := s.Number
+	size := float64(s.Size) / (1024.0 * 1024.0)
+	speed := size / s.Took.Seconds()
+	s.Mtx.Unlock()
+	return fmt.Sprintf("%d files for %0.2f MB with avg. dl. speed %0.3f MB/s", num, size, speed)
+}
+
 var (
 	downloader chan *url.URL
 	root       string
 	bail       int
 	counter    int
+	stats      *Stats
 	client     *http.Client
 	mtx        sync.RWMutex
 	wg         sync.WaitGroup
@@ -90,7 +124,9 @@ func DownloadPage(path string) (doc *html.HtmlDocument, err error) {
 	return
 }
 
-func DownloadFile(target string, fullpath string) (err error) {
+func DownloadFile(target string, fullpath string) (n int64, took time.Duration, err error) {
+	start := time.Now()
+
 	res, err := client.Get(target)
 	if err != nil {
 		return
@@ -103,7 +139,8 @@ func DownloadFile(target string, fullpath string) (err error) {
 	}
 	defer handle.Close()
 
-	_, err = io.Copy(handle, res.Body)
+	n, err = io.Copy(handle, res.Body)
+	took = time.Since(start)
 	return
 }
 
@@ -240,9 +277,10 @@ func Downloader() {
 			mtx.Unlock()
 		} else {
 			log.Println("Downloading", fullpath)
-			err := DownloadFile(target.String(), fullpath)
+			n, took, err := DownloadFile(target.String(), fullpath)
 			if err != nil {
 				log.Printf("ERROR Downloader: %s\n", err)
+				stats.Update(n, took)
 			}
 		}
 	}
@@ -278,6 +316,7 @@ func main() {
 	client = &http.Client{Transport: tr}
 
 	downloader = make(chan *url.URL, *flgDls)
+	stats = &Stats{}
 
 	for i := 0; i < *flgDls; i++ {
 		wg.Add(1)
@@ -314,11 +353,14 @@ func main() {
 			log.Println("ERROR", err)
 		}
 
-		log.Printf("Finished target: %s (took %s)\n", target.Name, time.Now().Sub(startTarget))
+		log.Printf("Finished target: %s (took %s)\n", target.Name, time.Since(startTarget))
 	}
 
 	close(downloader)
 	log.Println("Waiting for downloaders to finish...")
 	wg.Wait()
-	log.Printf("All done (took %s).", time.Now().Sub(start))
+	if !stats.IsEmpty() {
+		log.Println("Download statistics:", stats)
+	}
+	log.Printf("All done (took %s).", time.Since(start))
 }

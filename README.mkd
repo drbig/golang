@@ -53,6 +53,13 @@ almost any error.
 
 ### grabber.go
 
+*Updates:*
+
+Added basic downloading statistics (number of files, total size and average 
+download speed).
+
+*General:*
+
 Purely declarative web scrapper with parallel downloading. Intended to automate 
 the common pattern found in websites: archive page pagination - post links - 
 resource links. You should open `unixporn.json` example to see the structure of 
