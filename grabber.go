@@ -169,6 +169,7 @@ func DoAction(base *url.URL, target string, act *Action) (res *url.URL, err erro
 		} else {
 			res.Path += urlTarget.Path
 		}
+		res.RawQuery = urlTarget.RawQuery
 	}
 
 	switch act.Action {
