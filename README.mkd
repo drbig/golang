@@ -55,6 +55,15 @@ almost any error.
 
 *Updates:*
 
+Added basic support for headers injection. To use add `headers` to your 
+target definition (usual hash). Note that this gives you also the ability 
+for basic cookie injection. *Warning:* if you have multiple targets defined 
+in a single file be aware that headers are currently read from a global 
+variable, so there might be problems 'between the targets' (i.e. an edge 
+case where a link has been pushed to queue from target 1 but gets processed 
+when target 2 is set as the source of headers). Obvious work-around is to 
+use one target per file.
+
 Added new mode `single`. Useful when results are paginated in chronological 
 order - as you don't know the last page's link you can use single to go to 
 the 'last page' and then follow every 'previous page' link.

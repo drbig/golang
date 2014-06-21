@@ -32,11 +32,12 @@ type Action struct {
 }
 
 type Target struct {
-	Name string
-	URL  string
-	Bail int
-	Path string
-	Do   *Action
+	Name    string
+	URL     string
+	Bail    int
+	Path    string
+	Headers *map[string]string
+	Do      *Action
 }
 
 type Stats struct {
@@ -77,6 +78,7 @@ var (
 	root       string
 	bail       int
 	counter    int
+	current    *Target
 	stats      *Stats
 	client     *http.Client
 	mtx        sync.RWMutex
@@ -103,8 +105,28 @@ func LoadRules(name string) (t []Target, err error) {
 	return
 }
 
+func MakeRequest(method string, path string) (req *http.Request, err error) {
+	req, err = http.NewRequest(method, path, nil)
+	if err != nil {
+		return
+	}
+
+	if current.Headers != nil {
+		for k, v := range *current.Headers {
+			req.Header.Add(k, v)
+		}
+	}
+
+	return
+}
+
 func DownloadPage(path string) (doc *html.HtmlDocument, err error) {
-	res, err := client.Get(path)
+	req, err := MakeRequest("GET", path)
+	if err != nil {
+		return
+	}
+
+	res, err := client.Do(req)
 	if err != nil {
 		return
 	}
@@ -127,7 +149,12 @@ func DownloadPage(path string) (doc *html.HtmlDocument, err error) {
 func DownloadFile(target string, fullpath string) (n int64, took time.Duration, err error) {
 	start := time.Now()
 
-	res, err := client.Get(target)
+	req, err := MakeRequest("GET", target)
+	if err != nil {
+		return
+	}
+
+	res, err := client.Do(req)
 	if err != nil {
 		return
 	}
@@ -367,6 +394,7 @@ func main() {
 		bail = target.Bail
 		counter = 1
 
+		current = &target
 		err = Process(base, target.Do)
 		if err != nil {
 			log.Println("ERROR", err)
