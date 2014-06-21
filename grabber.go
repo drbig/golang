@@ -210,6 +210,23 @@ func Process(base *url.URL, act *Action) (err error) {
 	}
 
 	switch act.Mode {
+	case "single":
+		if len(res) < 1 {
+			err = errors.New(fmt.Sprintf("Process: %s nothing found", base))
+			return err
+		}
+
+		target, err := DoAction(base, res[0].String(), act)
+		if err != nil {
+			return err
+		}
+
+		if act.Do != nil {
+			err = Process(target, act.Do)
+			if err != nil {
+				return err
+			}
+		}
 	case "follow":
 		if act.Do != nil {
 			err = Process(base, act.Do)

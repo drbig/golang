@@ -55,6 +55,10 @@ almost any error.
 
 *Updates:*
 
+Added new mode `single`. Useful when results are paginated in chronological 
+order - as you don't know the last page's link you can use single to go to 
+the 'last page' and then follow every 'previous page' link.
+
 Added basic downloading statistics (number of files, total size and average 
 download speed).
 
