@@ -1,7 +1,13 @@
 # Experiments in Golang
 
 Another assorted collection of fun in Golang.
-If you have any feedback drop me a line at p.staszewski@gmail.com
+
+If you have any feedback drop me a line at p.staszewski@gmail.com or look for 
+dRbiG on FreeNode.
+
+* [Working stuff](#working-stuff)
+* [Work in progress](#work-in-progress)
+* [Legal](#license)
 
 Working stuff
 -------------
@@ -124,10 +130,21 @@ There are no runtime dependencies. The `sample.ttf` font comes from
 [Ruby/SDL](https://github.com/ohai/rubysdl) repository (if I remember 
 correctly) and I claim no copyright for it.
 
+Work in progress
+----------------
+
+### adhole.go
+
+Minimal DNS proxy and 'null-data' HTTP server intended to transparently block 
+advertisements on the world wide web. First and foremost it's a foray into 
+working with binary protocols in Golang. If you're looking for a full-blown 
+implementation of DNS in golang better check 
+[this](https://github.com/miekg/dns).
+
 License
 -------
 
-Copyright (c) 2012 - 2014 Piotr S. Staszewski
+Copyright (c) 2012 - 2014 Piotr S. Staszewski, unless otherwise noted.
 
 Usual [2-clause BSD license](http://opensource.org/licenses/BSD-2-Clause) for 
 everything. See LICENSE.txt for details.
