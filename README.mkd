@@ -5,9 +5,27 @@ Another assorted collection of fun in Golang.
 If you have any feedback drop me a line at p.staszewski@gmail.com or look for 
 dRbiG on FreeNode.
 
+* [Proper stuff](#proper-stuff)
 * [Working stuff](#working-stuff)
 * [Work in progress](#work-in-progress)
 * [Legal](#license)
+
+Proper stuff
+------------
+
+### [grabber](https://github.com/drbig/grabber)
+
+Grabber is a concurrent declarative web scraper and downloader.
+
+This is the rewrite of [grabber.go](#grabbergo).
+
+### [camtagger](https://github.com/drbig/camtagger)
+
+Camtagger is a simple command-line mass-tagger for 
+[Camlistore](https://camlistore.org/).
+
+If you're not interested in Camlistore (but you should be) this will be of no 
+use to you.
 
 Working stuff
 -------------
@@ -60,6 +78,9 @@ almost any error.
 ### grabber.go
 
 *Updates:*
+
+**No longer maintained here**. Please find the rewritten version 
+[here](https://github.com/drbig/grabber).
 
 Added basic support for headers injection. To use add `headers` to your 
 target definition (usual hash). Note that this gives you also the ability 
