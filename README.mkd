@@ -7,7 +7,6 @@ dRbiG on FreeNode.
 
 * [Proper stuff](#proper-stuff)
 * [Working stuff](#working-stuff)
-* [Work in progress](#work-in-progress)
 * [Legal](#license)
 
 Proper stuff
@@ -26,6 +25,11 @@ Camtagger is a simple command-line mass-tagger for
 
 If you're not interested in Camlistore (but you should be) this will be of no 
 use to you.
+
+### [adhole](https://github.com/drbig/adhole)
+
+AdHole is a simple transparent advertisement and tracking blocker intended for 
+personal use. Simple, minimal, low-level.
 
 Working stuff
 -------------
@@ -150,17 +154,6 @@ The only dependency is [freetype-go](https://code.google.com/p/freetype-go/).
 There are no runtime dependencies. The `sample.ttf` font comes from 
 [Ruby/SDL](https://github.com/ohai/rubysdl) repository (if I remember 
 correctly) and I claim no copyright for it.
-
-Work in progress
-----------------
-
-### adhole.go
-
-Minimal DNS proxy and 'null-data' HTTP server intended to transparently block 
-advertisements on the world wide web. First and foremost it's a foray into 
-working with binary protocols in Golang. If you're looking for a full-blown 
-implementation of DNS in golang better check 
-[this](https://github.com/miekg/dns).
 
 License
 -------
