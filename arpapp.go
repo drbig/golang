@@ -5,6 +5,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"log"
@@ -20,11 +21,13 @@ import (
 type ArpEntry struct {
 	online bool
 	stamp  time.Time
+	name   string
 }
 
 const (
 	ARPREGEX  = ".*? \\((.*?)\\) "
-	LOGSIZE   = 16
+	NAMEREGEX = "^(.*?)\\s+A\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)"
+	LOGSIZE   = 64
 	HTMLSTART = `<html><head><title>arpapp</title>
 <style>body{background:black;color:#d0d0d0}span.online{color:green}span.offline{color:red}</style>
 </head><body><pre><b>arpapp</b>
@@ -38,6 +41,7 @@ var (
 	port     int
 	interval time.Duration
 	decay    int
+	names    map[string]string
 	arplog   map[string]ArpEntry
 	arpregex *regexp.Regexp
 	decayrex *regexp.Regexp
@@ -52,6 +56,8 @@ func setup() {
 	var err error
 	var intervalstr string
 	var decayrexstr string
+	var namedb string
+	var namerex *regexp.Regexp
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [options] PORT\n", os.Args[0])
@@ -62,6 +68,7 @@ func setup() {
 	flag.StringVar(&intervalstr, "i", "10m", "Scan INTERVAL")
 	flag.IntVar(&decay, "d", 72, "Forget after DECAY hours")
 	flag.StringVar(&decayrexstr, "r", "", "Decay only IPs matching REGEXP")
+	flag.StringVar(&namedb, "n", "", "Hostnames db file path")
 	flag.Parse()
 
 	if len(flag.Args()) < 1 {
@@ -85,6 +92,22 @@ func setup() {
 		}
 	} else {
 		decayrex = nil
+	}
+
+	if len(namedb) > 0 {
+		namerex = regexp.MustCompile(NAMEREGEX)
+		names = make(map[string]string, LOGSIZE)
+		handle, err := os.Open(namedb)
+		if err != nil {
+			die("Failed to open hostnames file '"+namedb+"'!", 2)
+		}
+		defer handle.Close()
+		scn := bufio.NewScanner(handle)
+		for scn.Scan() {
+			if match := namerex.FindStringSubmatch(scn.Text()); match != nil {
+				names[match[2]] = match[1]
+			}
+		}
 	}
 
 	arpregex = regexp.MustCompile(ARPREGEX)
@@ -111,16 +134,16 @@ func scan() {
 	for ip, _ := range seen {
 		if _, present := arplog[ip]; present {
 			if !arplog[ip].online {
-				arplog[ip] = ArpEntry{online: true, stamp: time.Now()}
+				arplog[ip] = ArpEntry{online: true, stamp: time.Now(), name: names[ip]}
 			}
 		} else {
-			arplog[ip] = ArpEntry{online: true, stamp: time.Now()}
+			arplog[ip] = ArpEntry{online: true, stamp: time.Now(), name: names[ip]}
 		}
 	}
 	for ip, entry := range arplog {
 		if _, present := seen[ip]; !present {
 			if entry.online {
-				arplog[ip] = ArpEntry{online: false, stamp: time.Now()}
+				arplog[ip] = ArpEntry{online: false, stamp: time.Now(), name: names[ip]}
 			}
 		}
 		if (decayrex != nil) && !entry.online {
@@ -154,7 +177,8 @@ func render(out http.ResponseWriter, req *http.Request) {
 		} else {
 			fmt.Fprintf(out, "offline")
 		}
-		fmt.Fprintf(out, "'>%-15s</span> since %s (%s)\n", ip, entry.stamp.Format("2006-01-02 15:04:05 MST"), duration.String())
+		fmt.Fprintf(out, "'>%-16s %-15s</span> since %s (%s)\n",
+			entry.name, ip, entry.stamp.Format("2006-01-02 15:04:05 MST"), duration.String())
 	}
 	fmt.Fprintf(out, "\ninterval: %s", interval)
 	fmt.Fprintf(out, HTMLEND)

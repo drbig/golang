@@ -46,11 +46,13 @@ not commented, but then it should be reasonably easy to understand anyway.
 
 ### arpapp.go
 
-A 'webapp' that discovers ips via arp cache and then ping-checks them - to 
+A 'webapp' that discovers IPs via ARP cache and then ping-checks them - to 
 bring you a succinct report of what is online and what is offline in your 
 neighbourhood. It considers itself only with the last state change (keeping 
-both the 'since' and 'time elapsed'). It does not clean old entries (i.e. not 
-suitable for public routers). Tested on FreeBSD and Linux, works like a charm.
+both the 'since' and 'time elapsed'). It can clean old entries based on a 
+Regexp match. Latest addition is the ability to read standard zone files, so 
+that a hostname can be displayed alongside the IP address. Tested on FreeBSD 
+and Linux, works like a charm.
 
 ### dhproxy.go
 
