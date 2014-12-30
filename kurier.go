@@ -136,6 +136,13 @@ func main() {
 			"",
 			regexp.MustCompile("\"statusText\":\"(.*?)\""),
 		},
+		Service{
+			"K-EX",
+			"^\\d{9}$",
+			"http://kurier.k-ex.pl/tnt_szczegoly.php?nr=%s",
+			"//*[@id='sub-module-content']/div[2]/span[2]/text()",
+			nil,
+		},
 	}
 
 	client = &http.Client{}
