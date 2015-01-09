@@ -170,15 +170,18 @@ func render(out http.ResponseWriter, req *http.Request) {
 	for _, ip := range keys {
 		entry := arplog[ip]
 		duration := time.Since(entry.stamp)
+		var state string
 
 		fmt.Fprintf(out, "<span class='")
 		if entry.online {
 			fmt.Fprintf(out, "online")
+			state = " online"
 		} else {
 			fmt.Fprintf(out, "offline")
+			state = "offline"
 		}
-		fmt.Fprintf(out, "'>%-16s %-15s</span> since %s (%s)\n",
-			entry.name, ip, entry.stamp.Format("2006-01-02 15:04:05 MST"), duration.String())
+		fmt.Fprintf(out, "'>%-16s %-15s</span> %s since %s (%s)\n",
+			entry.name, ip, state, entry.stamp.Format("2006-01-02 15:04:05 MST"), duration.String())
 	}
 	fmt.Fprintf(out, "\ninterval: %s", interval)
 	fmt.Fprintf(out, HTMLEND)
