@@ -135,9 +135,9 @@ and FreeBSD.
 
 Check the status of your deliveries from the command-line (and *fast*). This 
 one uses either XPath or plain old Regexp extractor, so you can deal easily 
-with both HTML and JSON. Currently it's setup for the 5 most popular delivery
-services in Poland (though UPS link looks like a global one, just change the
-language bit). Provide your tracking numbers as arguments. Depends on 
+with both HTML and JSON. It also has support for custom download function
+for those idiotic services that think PHPSESSID is a security feature.
+Provide your tracking numbers as arguments. Depends on 
 [gokogiri](https://github.com/moovweb/gokogiri) and 
 [sanitize](https://github.com/kennygrant/sanitize).
 
