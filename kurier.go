@@ -179,7 +179,7 @@ func main() {
 			dlSimpleGet,
 			"^\\d{9}$",
 			"http://kurier.k-ex.pl/tnt_szczegoly.php?nr=%s",
-			"//*[@id='sub-module-content']/div[2]/span[2]/text()",
+			"//table[last()]/tr[last()]/td[4]/text()",
 			nil,
 		},
 		Service{
@@ -187,7 +187,7 @@ func main() {
 			dlPocztex,
 			"^\\d{20}$",
 			"http://www.pocztex.pl/sledzenie/wssClient.php",
-			"//table/tr[last()]/td[3]/text()",
+			"//table[@id='zadarzenia_td']/tr[last()]/td[1]/text()",
 			nil,
 		},
 	}
