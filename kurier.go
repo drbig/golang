@@ -118,6 +118,32 @@ func dlPocztex(base, id string) (body []byte, err error) {
 	return
 }
 
+func dlDPD(base, id string) (body []byte, err error) {
+	form := url.Values{}
+	form.Add("q", id)
+	form.Add("typ", "1")
+
+	req, err := http.NewRequest("POST", base, strings.NewReader(form.Encode()))
+	if err != nil {
+		return
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	res, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		err = errors.New(fmt.Sprintf("DownloadDPD: %d %s", res.StatusCode, base))
+		return
+	}
+
+	body, err = ioutil.ReadAll(res.Body)
+	return
+}
+
 func checkService(id string, s Service) {
 	res, err := s.Check(id)
 	if (err == nil) && (res != "") {
@@ -144,10 +170,10 @@ func main() {
 		},
 		Service{
 			"DPD",
-			dlSimpleGet,
+			dlDPD,
 			"^\\w{14}$",
-			"http://www.dpd.com.pl/tracking.asp?p1=%s&przycisk=Wyszukaj",
-			"//table[@class='subpage_modules']/tr[2]/td[3]",
+			"https://tracktrace.dpd.com.pl/findPackage",
+			"//table/tr[2]/td[3]/text()",
 			nil,
 		},
 		Service{
