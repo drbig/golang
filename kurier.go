@@ -226,6 +226,16 @@ func main() {
 		},
 	}
 
+	if len(os.Args) == 2 && os.Args[1] == "list" {
+		for nr, s := range services {
+			fmt.Printf(
+				"%2d. %s  (%s)\n    %s\n    %s\n",
+				nr+1, s.Name, s.Matcher, s.URL, s.XPath,
+			)
+		}
+		os.Exit(0)
+	}
+
 	client = &http.Client{}
 	replacer = regexp.MustCompile("\\s{2,}|\\t+|\\\\n")
 
