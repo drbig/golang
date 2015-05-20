@@ -216,6 +216,14 @@ func main() {
 			"//table[@id='zadarzenia_td']/tr[last()]/td[1]/text()",
 			nil,
 		},
+		Service{
+			"InPost",
+			dlSimpleGet,
+			"^\\d{24}$",
+			"https://paczkomaty.pl/pl/znajdz-paczke?parcel=%s",
+			"//*[@id='find-parcel']/div[3]/div/table/tbody/tr[3]/td",
+			nil,
+		},
 	}
 
 	client = &http.Client{}
