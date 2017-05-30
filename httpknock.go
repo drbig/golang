@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -22,7 +23,7 @@ const (
 	//	CLOSE_FW_CMD_FMT = `sudo ipfw table 1 delete %s`
 	OPEN_FW_CMD_FMT  = `echo open %s`
 	CLOSE_FW_CMD_FMT = `echo close %s`
-	KEEP_DURATION    = time.Duration(30) * time.Minute
+	KEEP_DURATION    = time.Duration(5) * time.Second
 	HOST             = `0.0.0.0`
 	PORT             = 9996
 	PASSWORD_VAR     = `HK_PASSWORD`
@@ -39,6 +40,11 @@ Set password using %s env variable.
 `
 )
 
+type timerMap struct {
+	mu sync.Mutex
+	ts map[string]*time.Timer
+}
+
 var (
 	flagKeepDuration time.Duration
 	flagHost         string
@@ -47,6 +53,7 @@ var (
 
 var (
 	password string
+	timers   timerMap
 )
 
 func init() {
@@ -58,6 +65,8 @@ func init() {
 	flag.DurationVar(&flagKeepDuration, "kd", KEEP_DURATION, "Keep open for given duration.")
 	flag.StringVar(&flagHost, "h", HOST, "Host to bind to.")
 	flag.IntVar(&flagPort, "p", PORT, "Port to bind to.")
+
+	timers.ts = make(map[string]*time.Timer, 256)
 }
 
 func main() {
@@ -69,10 +78,9 @@ func main() {
 	}
 
 	flag.Parse()
-
 	go runHTTPServer()
-
 	sigwait()
+
 	log.Println("HttpKnock stopped.")
 }
 
@@ -81,11 +89,37 @@ func handleOpen(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if !run_fw_cmd(OPEN_FW_CMD_FMT, req.RemoteAddr) {
+	ip := get_ip(req.RemoteAddr)
+	if !run_fw_cmd(OPEN_FW_CMD_FMT, ip) {
 		fmt.Fprintln(w, "FAILED")
 		return
 	}
 
+	duration := flagKeepDuration
+	if val := req.FormValue("for"); val != "" {
+		user_duration, err := time.ParseDuration(val)
+		if err != nil {
+			log.Printf("Failed to parse duration: %s", err)
+			fmt.Fprintln(w, "Failed to parse duration, using default.")
+		} else {
+			duration = user_duration
+		}
+	}
+
+	timers.mu.Lock()
+	timers.ts[ip] = time.AfterFunc(duration, func() {
+		log.Printf("Closing FW for %s after %s timeout...", ip, duration)
+		run_fw_cmd(CLOSE_FW_CMD_FMT, ip)
+		timers.mu.Lock()
+		delete(timers.ts, ip)
+		timers.mu.Unlock()
+	})
+	timers.mu.Unlock()
+
+	until := time.Now().Add(duration)
+	log.Printf("Added %s until %s\n", ip, until)
+
+	fmt.Fprintf(w, "Added %s until %s.\n", ip, until)
 	fmt.Fprintln(w, "OK")
 }
 
@@ -94,10 +128,36 @@ func handleClose(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if !run_fw_cmd(CLOSE_FW_CMD_FMT, req.RemoteAddr) {
+	var ip string
+	if val := req.FormValue("ip"); val != "" {
+		ip = val
+	} else {
+		ip = get_ip(req.RemoteAddr)
+	}
+
+	timers.mu.Lock()
+	if _, ok := timers.ts[ip]; !ok {
+		log.Printf("Client %s tried to unblock non-blocked ip: %s\n", req.RemoteAddr, ip)
+		fmt.Fprintf(w, "IP %s is not open.\n", ip)
+		fmt.Fprintln(w, "FAILED")
+		timers.mu.Unlock()
+		return
+	} else {
+		timers.mu.Unlock()
+	}
+
+	if !run_fw_cmd(CLOSE_FW_CMD_FMT, ip) {
 		fmt.Fprintln(w, "FAILED")
 		return
 	}
+
+	timers.mu.Lock()
+	if _, ok := timers.ts[ip]; ok {
+		timers.ts[ip].Stop()
+		delete(timers.ts, ip)
+	}
+	timers.mu.Unlock()
+	log.Printf("Client %s killed timer for: %s\n", req.RemoteAddr, ip)
 
 	fmt.Fprintln(w, "OK")
 }
@@ -143,6 +203,10 @@ func get_password() (string, bool) {
 	}
 
 	return "", false
+}
+
+func get_ip(addr string) string {
+	return strings.Split(addr, ":")[0]
 }
 
 func sigwait() {
