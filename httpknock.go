@@ -107,6 +107,20 @@ func handleOpen(w http.ResponseWriter, req *http.Request) {
 	}
 
 	timers.mu.Lock()
+	if t, ok := timers.ts[ip]; ok {
+		if !t.Stop() {
+			<-t.C
+		}
+		t.Reset(duration)
+
+		until := time.Now().Add(duration)
+		log.Printf("Client %s reset timer for %s to: %s", req.RemoteAddr, ip, until)
+		fmt.Fprintf(w, "Reset timer for %s to: %s\n", ip, until)
+		fmt.Fprintln(w, "OK")
+		timers.mu.Unlock()
+		return
+	}
+
 	timers.ts[ip] = time.AfterFunc(duration, func() {
 		log.Printf("Closing FW for %s after %s timeout...", ip, duration)
 		run_fw_cmd(CLOSE_FW_CMD_FMT, ip)
