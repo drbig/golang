@@ -136,30 +136,25 @@ func handleClose(w http.ResponseWriter, req *http.Request) {
 	}
 
 	timers.mu.Lock()
-	if _, ok := timers.ts[ip]; !ok {
+	if _, ok := timers.ts[ip]; ok {
+		if !run_fw_cmd(CLOSE_FW_CMD_FMT, ip) {
+			fmt.Fprintln(w, "FAILED")
+			timers.mu.Unlock()
+			return
+		}
+
+		timers.ts[ip].Stop()
+		delete(timers.ts, ip)
+
+		log.Printf("Client %s killed timer for: %s\n", req.RemoteAddr, ip)
+		fmt.Fprintln(w, "OK")
+	} else {
 		log.Printf("Client %s tried to unblock non-blocked ip: %s\n", req.RemoteAddr, ip)
 		fmt.Fprintf(w, "IP %s is not open.\n", ip)
 		fmt.Fprintln(w, "FAILED")
-		timers.mu.Unlock()
-		return
-	} else {
-		timers.mu.Unlock()
 	}
 
-	if !run_fw_cmd(CLOSE_FW_CMD_FMT, ip) {
-		fmt.Fprintln(w, "FAILED")
-		return
-	}
-
-	timers.mu.Lock()
-	if _, ok := timers.ts[ip]; ok {
-		timers.ts[ip].Stop()
-		delete(timers.ts, ip)
-	}
 	timers.mu.Unlock()
-	log.Printf("Client %s killed timer for: %s\n", req.RemoteAddr, ip)
-
-	fmt.Fprintln(w, "OK")
 }
 
 func run_fw_cmd(cmd_fmt string, addr string) bool {
