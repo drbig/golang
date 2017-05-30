@@ -40,9 +40,14 @@ Set password using %s env variable.
 `
 )
 
+type timerEntry struct {
+	t *time.Timer
+	u time.Time
+}
+
 type timerMap struct {
 	mu sync.Mutex
-	ts map[string]*time.Timer
+	ts map[string]timerEntry
 }
 
 var (
@@ -66,7 +71,7 @@ func init() {
 	flag.StringVar(&flagHost, "h", HOST, "Host to bind to.")
 	flag.IntVar(&flagPort, "p", PORT, "Port to bind to.")
 
-	timers.ts = make(map[string]*time.Timer, 256)
+	timers.ts = make(map[string]timerEntry, 256)
 }
 
 func main() {
@@ -105,13 +110,14 @@ func handleOpen(w http.ResponseWriter, req *http.Request) {
 			duration = user_duration
 		}
 	}
+	until := time.Now().Add(duration)
 
 	timers.mu.Lock()
 	if t, ok := timers.ts[ip]; ok {
-		if !t.Stop() {
-			<-t.C
+		if !t.t.Stop() {
+			<-t.t.C
 		}
-		t.Reset(duration)
+		t.t.Reset(duration)
 
 		until := time.Now().Add(duration)
 		log.Printf("Client %s reset timer for %s to: %s", req.RemoteAddr, ip, until)
@@ -121,16 +127,18 @@ func handleOpen(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	timers.ts[ip] = time.AfterFunc(duration, func() {
-		log.Printf("Closing FW for %s after %s timeout...", ip, duration)
-		run_fw_cmd(CLOSE_FW_CMD_FMT, ip)
-		timers.mu.Lock()
-		delete(timers.ts, ip)
-		timers.mu.Unlock()
-	})
+	timers.ts[ip] = timerEntry{
+		u: until,
+		t: time.AfterFunc(duration, func() {
+			log.Printf("Closing FW for %s after %s timeout...", ip, duration)
+			run_fw_cmd(CLOSE_FW_CMD_FMT, ip)
+			timers.mu.Lock()
+			delete(timers.ts, ip)
+			timers.mu.Unlock()
+		}),
+	}
 	timers.mu.Unlock()
 
-	until := time.Now().Add(duration)
 	log.Printf("Added %s until %s\n", ip, until)
 
 	fmt.Fprintf(w, "Added %s until %s.\n", ip, until)
@@ -157,7 +165,7 @@ func handleClose(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		timers.ts[ip].Stop()
+		timers.ts[ip].t.Stop()
 		delete(timers.ts, ip)
 
 		log.Printf("Client %s killed timer for: %s\n", req.RemoteAddr, ip)
@@ -169,6 +177,20 @@ func handleClose(w http.ResponseWriter, req *http.Request) {
 	}
 
 	timers.mu.Unlock()
+}
+
+func handleInfo(w http.ResponseWriter, req *http.Request) {
+	if !auth_request(w, req) {
+		return
+	}
+
+	fmt.Fprintln(w, "IP      \t\tExpires")
+	timers.mu.Lock()
+	for ip, t := range timers.ts {
+		fmt.Fprintf(w, "%s\t\t%s\n", ip, t.u)
+	}
+	timers.mu.Unlock()
+	fmt.Fprintln(w, "OK")
 }
 
 func run_fw_cmd(cmd_fmt string, addr string) bool {
@@ -188,6 +210,7 @@ func runHTTPServer() {
 	addr := fmt.Sprintf("%s:%d", flagHost, flagPort)
 	http.HandleFunc("/open", handleOpen)
 	http.HandleFunc("/close", handleClose)
+	http.HandleFunc("/info", handleInfo)
 	log.Println("Starting HTTP server at", addr)
 	log.Fatalln(http.ListenAndServe(addr, nil))
 }
