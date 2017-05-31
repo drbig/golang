@@ -41,8 +41,9 @@ Set password using %s env variable.
 )
 
 type timerEntry struct {
-	t *time.Timer
-	u time.Time
+	t *time.Timer // Timer
+	u time.Time   // Until
+	s time.Time   // Since
 }
 
 type timerMap struct {
@@ -105,7 +106,8 @@ func handleOpen(w http.ResponseWriter, req *http.Request) {
 			duration = user_duration
 		}
 	}
-	until := time.Now().Add(duration)
+	now := time.Now()
+	until := now.Add(duration)
 
 	timers.mu.Lock()
 	defer timers.mu.Unlock()
@@ -128,7 +130,6 @@ func handleOpen(w http.ResponseWriter, req *http.Request) {
 	}
 
 	timers.ts[ip] = timerEntry{
-		u: until,
 		t: time.AfterFunc(duration, func() {
 			log.Printf("Closing FW for %s after %s timeout...", ip, duration)
 			if !run_fw_cmd(CLOSE_FW_CMD_FMT, ip) {
@@ -139,6 +140,7 @@ func handleOpen(w http.ResponseWriter, req *http.Request) {
 			delete(timers.ts, ip)
 			timers.mu.Unlock()
 		}),
+		u: until,
 		s: now,
 	}
 
@@ -189,10 +191,10 @@ func handleInfo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	fmt.Fprintln(w, "IP      \t\tExpires")
+	fmt.Fprintf(w, "%-15s   %-40s   %-40s\n", "IP", "Until", "Since")
 	timers.mu.Lock()
 	for ip, t := range timers.ts {
-		fmt.Fprintf(w, "%s\t\t%s\n", ip, t.u)
+		fmt.Fprintf(w, "%15s   %40s   %40s\n", ip, t.u, t.s)
 	}
 	timers.mu.Unlock()
 	fmt.Fprintln(w, "OK")
