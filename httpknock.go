@@ -131,7 +131,7 @@ func handleOpen(w http.ResponseWriter, req *http.Request) {
 
 	timers.ts[ip] = timerEntry{
 		t: time.AfterFunc(duration, func() {
-			log.Printf("Closing FW for %s after %s timeout...", ip, duration)
+			log.Printf("Closing FW for %s", ip)
 			if !run_fw_cmd(CLOSE_FW_CMD_FMT, ip) {
 				log.Printf("Failed to close FW for %s!", ip)
 			}
@@ -205,7 +205,7 @@ func run_fw_cmd(cmd_fmt string, addr string) bool {
 	cmd_args := strings.Split(cmd_str, " ")
 
 	if output, err := exec.Command(cmd_args[0], cmd_args[1:]...).Output(); err != nil {
-		log.Printf("Command '%s' failed: %s\nOutput: %s\n", cmd_str, err, string(output))
+		log.Printf("Command '%s' failed: %s\nOutput: %s", cmd_str, err, string(output))
 		return false
 	}
 
@@ -224,11 +224,11 @@ func runHTTPServer() {
 
 func auth_request(w http.ResponseWriter, req *http.Request) bool {
 	if val := req.FormValue(PASSWORD_KEY); val == password {
-		log.Printf("Authorized access to %s form %s\n", req.RequestURI, req.RemoteAddr)
+		log.Printf("Authorized access to %s form %s", req.RequestURI, req.RemoteAddr)
 		return true
 	}
 
-	log.Printf("Unauthorized access to %s from %s\n", req.RequestURI, req.RemoteAddr)
+	log.Printf("Unauthorized access to %s from %s", req.RequestURI, req.RemoteAddr)
 	http.NotFound(w, req)
 	return false
 }
@@ -253,5 +253,5 @@ func sigwait() {
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 
 	stop_sig := <-sig
-	log.Printf("Received signal: %s\n", stop_sig)
+	log.Printf("Received signal: %s", stop_sig)
 }
