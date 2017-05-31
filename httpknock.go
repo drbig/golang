@@ -95,11 +95,6 @@ func handleOpen(w http.ResponseWriter, req *http.Request) {
 	}
 
 	ip := get_ip(req.RemoteAddr)
-	if !run_fw_cmd(OPEN_FW_CMD_FMT, ip) {
-		fmt.Fprintln(w, "FAILED")
-		return
-	}
-
 	duration := flagKeepDuration
 	if val := req.FormValue("for"); val != "" {
 		user_duration, err := time.ParseDuration(val)
@@ -113,17 +108,22 @@ func handleOpen(w http.ResponseWriter, req *http.Request) {
 	until := time.Now().Add(duration)
 
 	timers.mu.Lock()
+	defer timers.mu.Unlock()
+
 	if t, ok := timers.ts[ip]; ok {
 		if !t.t.Stop() {
 			<-t.t.C
 		}
 		t.t.Reset(duration)
 
-		until := time.Now().Add(duration)
 		log.Printf("Client %s reset timer for %s to: %s", req.RemoteAddr, ip, until)
 		fmt.Fprintf(w, "Reset timer for %s to: %s\n", ip, until)
 		fmt.Fprintln(w, "OK")
-		timers.mu.Unlock()
+		return
+	}
+
+	if !run_fw_cmd(OPEN_FW_CMD_FMT, ip) {
+		fmt.Fprintln(w, "FAILED")
 		return
 	}
 
@@ -131,15 +131,18 @@ func handleOpen(w http.ResponseWriter, req *http.Request) {
 		u: until,
 		t: time.AfterFunc(duration, func() {
 			log.Printf("Closing FW for %s after %s timeout...", ip, duration)
-			run_fw_cmd(CLOSE_FW_CMD_FMT, ip)
+			if !run_fw_cmd(CLOSE_FW_CMD_FMT, ip) {
+				log.Printf("Failed to close FW for %s!", ip)
+			}
+
 			timers.mu.Lock()
 			delete(timers.ts, ip)
 			timers.mu.Unlock()
 		}),
+		s: now,
 	}
-	timers.mu.Unlock()
 
-	log.Printf("Added %s until %s\n", ip, until)
+	log.Printf("Added %s until %s", ip, until)
 
 	fmt.Fprintf(w, "Added %s until %s.\n", ip, until)
 	fmt.Fprintln(w, "OK")
@@ -158,25 +161,27 @@ func handleClose(w http.ResponseWriter, req *http.Request) {
 	}
 
 	timers.mu.Lock()
-	if _, ok := timers.ts[ip]; ok {
+	defer timers.mu.Unlock()
+
+	if t, ok := timers.ts[ip]; ok {
 		if !run_fw_cmd(CLOSE_FW_CMD_FMT, ip) {
 			fmt.Fprintln(w, "FAILED")
-			timers.mu.Unlock()
 			return
 		}
 
-		timers.ts[ip].t.Stop()
+		if !t.t.Stop() {
+			<-t.t.C
+		}
 		delete(timers.ts, ip)
 
 		log.Printf("Client %s killed timer for: %s\n", req.RemoteAddr, ip)
 		fmt.Fprintln(w, "OK")
-	} else {
-		log.Printf("Client %s tried to unblock non-blocked ip: %s\n", req.RemoteAddr, ip)
-		fmt.Fprintf(w, "IP %s is not open.\n", ip)
-		fmt.Fprintln(w, "FAILED")
+		return
 	}
 
-	timers.mu.Unlock()
+	log.Printf("Client %s tried to unblock non-blocked ip: %s\n", req.RemoteAddr, ip)
+	fmt.Fprintf(w, "IP %s is not open.\n", ip)
+	fmt.Fprintln(w, "FAILED")
 }
 
 func handleInfo(w http.ResponseWriter, req *http.Request) {
