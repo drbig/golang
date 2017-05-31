@@ -159,7 +159,7 @@ correctly) and I claim no copyright for it.
 
 ### httpknock.go
 
-Open firewall by issuing a get request. Rough and yet untested. Important
+Open firewall by issuing a get request. Rough but tested. Important
 config only in code. Not that you should trust binaries for such stuff anyway.
 Needs SSL before I'd actually recommend it.
 
